@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
 import AdminPanel from "@/components/AdminPanel";
+import FriendsSystem from "@/components/FriendsSystem";
+import GameChat from "@/components/GameChat";
+import CommentsSystem from "@/components/CommentsSystem";
 
 const Index = () => {
   const [gameDescription, setGameDescription] = useState("");
@@ -23,6 +26,8 @@ const Index = () => {
     username: string;
     isAdmin: boolean;
   } | null>(null);
+  const [showFriends, setShowFriends] = useState(false);
+  const [chatMinimized, setChatMinimized] = useState(true);
 
   const popularGames = [
     {
@@ -98,6 +103,22 @@ const Index = () => {
                       </Badge>
                     )}
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFriends(!showFriends)}
+                  >
+                    <Icon name="Users" size={16} className="mr-2" />
+                    Друзья
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setChatMinimized(!chatMinimized)}
+                  >
+                    <Icon name="MessageCircle" size={16} className="mr-2" />
+                    Чат
+                  </Button>
                   <Button variant="outline" size="sm" onClick={handleLogout}>
                     <Icon name="LogOut" size={16} className="mr-2" />
                     Выйти
@@ -339,34 +360,65 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="text-center py-12">
-                  <Icon
-                    name="UserPlus"
-                    size={48}
-                    className="mx-auto text-gray-500 mb-4"
-                  />
-                  <h3 className="text-xl text-white mb-2">Войди в аккаунт</h3>
-                  <p className="text-gray-400 mb-6">
-                    Чтобы создавать и публиковать игры
-                  </p>
-                  <div className="space-y-3 max-w-sm mx-auto">
-                    <Button
-                      className="w-full"
-                      onClick={() => setIsAuthModalOpen(true)}
-                    >
-                      <Icon name="LogIn" size={16} className="mr-2" />
-                      Войти
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setIsAuthModalOpen(true)}
-                    >
-                      <Icon name="UserPlus" size={16} className="mr-2" />
-                      Регистрация
-                    </Button>
+                {user ? (
+                  <div className="space-y-6">
+                    {/* Блок с постами пользователя */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3">Мои посты</h4>
+                      <div className="space-y-4">
+                        <Card className="bg-gray-700/50 border-gray-600">
+                          <CardHeader>
+                            <CardTitle className="text-white text-sm">
+                              Как я создал свою первую игру
+                            </CardTitle>
+                            <CardDescription className="text-gray-400 text-xs">
+                              Опубликовано 2 часа назад
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-gray-300 text-sm mb-3">
+                              Рассказываю о том, как создавал свою первую игру в pomndop...
+                            </p>
+                            <CommentsSystem 
+                              postId="user-post-1" 
+                              currentUser={user.username}
+                              canComment={true}
+                            />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Icon
+                      name="UserPlus"
+                      size={48}
+                      className="mx-auto text-gray-500 mb-4"
+                    />
+                    <h3 className="text-xl text-white mb-2">Войди в аккаунт</h3>
+                    <p className="text-gray-400 mb-6">
+                      Чтобы создавать и публиковать игры
+                    </p>
+                    <div className="space-y-3 max-w-sm mx-auto">
+                      <Button
+                        className="w-full"
+                        onClick={() => setIsAuthModalOpen(true)}
+                      >
+                        <Icon name="LogIn" size={16} className="mr-2" />
+                        Войти
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setIsAuthModalOpen(true)}
+                      >
+                        <Icon name="UserPlus" size={16} className="mr-2" />
+                        Регистрация
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -391,6 +443,35 @@ const Index = () => {
         onClose={() => setIsAuthModalOpen(false)}
         onLogin={handleLogin}
       />
+
+      {/* Система друзей */}
+      {showFriends && user && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Друзья</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFriends(false)}
+              >
+                <Icon name="X" size={16} />
+              </Button>
+            </div>
+            <FriendsSystem currentUser={user.username} />
+          </div>
+        </div>
+      )}
+
+      {/* Игровой чат */}
+      {user && (
+        <GameChat
+          gameId="general"
+          currentUser={user.username}
+          isMinimized={chatMinimized}
+          onToggleMinimize={() => setChatMinimized(!chatMinimized)}
+        />
+      )}
     </div>
   );
 };
