@@ -12,10 +12,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Icon from "@/components/ui/icon";
+import AuthModal from "@/components/AuthModal";
+import AdminPanel from "@/components/AdminPanel";
 
 const Index = () => {
   const [gameDescription, setGameDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<{
+    username: string;
+    isAdmin: boolean;
+  } | null>(null);
 
   const popularGames = [
     {
@@ -42,12 +49,25 @@ const Index = () => {
   ];
 
   const handleCreateGame = () => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     setIsCreating(true);
     // Имитация создания игры
     setTimeout(() => {
       setIsCreating(false);
       alert("Игра создается! Скоро будет готова 🎮");
     }, 2000);
+  };
+
+  const handleLogin = (username: string, isAdmin: boolean) => {
+    setUser({ username, isAdmin });
+  };
+
+  const handleLogout = () => {
+    setUser(null);
   };
 
   return (
@@ -61,13 +81,38 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-white">pomndop & iris</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Icon name="User" size={16} className="mr-2" />
-                Профиль
-              </Button>
-              <Button variant="outline" size="sm">
-                Регистрация
-              </Button>
+              {user ? (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <Icon name="User" size={16} className="text-primary" />
+                    <span className="text-white font-medium">
+                      {user.username}
+                    </span>
+                    {user.isAdmin && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-yellow-600 text-white"
+                      >
+                        <Icon name="Crown" size={12} className="mr-1" />
+                        Создатель
+                      </Badge>
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    <Icon name="LogOut" size={16} className="mr-2" />
+                    Выйти
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
+                  <Icon name="User" size={16} className="mr-2" />
+                  Войти
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -75,6 +120,8 @@ const Index = () => {
 
       {/* Главный контент */}
       <div className="container mx-auto px-4 py-8">
+        {/* Админ панель */}
+        <AdminPanel isVisible={user?.isAdmin || false} />
         {/* Героблок */}
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold text-white mb-6">
@@ -303,11 +350,18 @@ const Index = () => {
                     Чтобы создавать и публиковать игры
                   </p>
                   <div className="space-y-3 max-w-sm mx-auto">
-                    <Button className="w-full">
+                    <Button
+                      className="w-full"
+                      onClick={() => setIsAuthModalOpen(true)}
+                    >
                       <Icon name="LogIn" size={16} className="mr-2" />
                       Войти
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setIsAuthModalOpen(true)}
+                    >
                       <Icon name="UserPlus" size={16} className="mr-2" />
                       Регистрация
                     </Button>
@@ -330,6 +384,13 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Модальное окно авторизации */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={handleLogin}
+      />
     </div>
   );
 };
